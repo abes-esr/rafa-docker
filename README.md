@@ -1,5 +1,7 @@
 # rafa-docker
 
+(travail en cours, non déployé en dev,test,prod)
+
 Configuration docker 🐳 pour déployer l'application Rafa (référentiel des annuaires fonctionnels de l'Abes).
 
 Le code source (non opensource car vieux code) de rafa est accessible ici :
