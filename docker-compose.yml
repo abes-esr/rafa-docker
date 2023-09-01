@@ -1,0 +1,165 @@
+#
+# Ci-dessous la config qui permet de lancer rafa-docker
+#
+# Remarque: avant de lancer docker-compose up, il faut régler le fichier .env
+# en partant du fichier .env-dist qui donne les variables d'environnements
+# à personnaliser et des exemples de valeurs.
+#
+
+version: "3.5"
+
+x-common-variables: &rafa_variables
+  APPLIS_ENV: ${APPLIS_ENV}
+  rafa.dataSource.jdbcUrl: ${RAFA_DATASOURCE_JDBCURL}
+  rafa.dataSource.user: ${RAFA_DATASOURCE_USER}
+  rafa.dataSource.password: ${RAFA_DATASOURCE_PASSWORD}
+
+services:
+
+  ####################################
+  # Interface utilisateur de rafa
+  ####################################
+  rafa-web:
+    build:
+      context: ./images/Rafa/
+      dockerfile: Dockerfile
+      target: rafa-web-image
+    image: rafa-web-image:${RAFA_VERSION}
+    container_name: rafa-web
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    cpus: ${CPU_LIMIT}
+    depends_on:
+      rafa-db:
+        condition: service_healthy
+    environment:
+      <<: *rafa_variables
+      rafa.mail.smtp.host: ${RAFA_MAIL_SMTP_HOST}
+      rafa.mail.smtp.port: ${RAFA_MAIL_SMTP_PORT}
+      rafa.mail.smtp.username: ${RAFA_MAIL_SMTP_USERNAME}
+      rafa.mail.smtp.password: ${RAFA_MAIL_SMTP_PASSWORD}
+      rafa.mail.smtp.from: ${RAFA_MAIL_SMTP_FROM}
+    ports:
+      - ${RAFA_WEB_HTTP_PORT}:8080
+    labels:
+      # pour envoyer les logs dans le puits de log de l'abes
+      - "co.elastic.logs/enabled=true"
+      - "co.elastic.logs/processors.add_fields.target="
+      - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
+      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=tomcat"
+
+
+
+
+  ####################################
+  # Batch de rafa
+  ####################################
+  rafa-batch:
+    build:
+      context: ./images/Rafa/
+      dockerfile: Dockerfile
+      target: rafa-batch-image
+    image: rafa-batch-image:${RAFA_VERSION}
+    container_name: rafa-batch
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    cpus: ${CPU_LIMIT}
+    volumes:
+      - ${RAFA_BATCH_DIR_OUT}:/scripts/output/
+    depends_on:
+      rafa-db:
+        condition: service_healthy
+    environment:
+      <<: *rafa_variables
+      RAFA_BATCH_CRON: ${RAFA_BATCH_CRON}
+      RAFA_BATCH_AT_STARTUP: ${RAFA_BATCH_AT_STARTUP}
+      rafa.batch.dir.out: /scripts/output/
+    labels:
+      # pour envoyer les logs dans le puits de log de l'abes
+      - "co.elastic.logs/enabled=true"
+      - "co.elastic.logs/processors.add_fields.target="
+      - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
+      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=java-spring"
+
+
+
+  ##############################
+  # rafa-db
+  # Base de données oracle de rafa
+  ##############################
+  rafa-db:
+    image: container-registry.oracle.com/database/free:23.2.0.0
+    container_name: rafa-db
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    cpus: ${CPU_LIMIT}
+    ports:
+      - ${RAFA_DB_ORACLE_PORT}:1521
+    environment:
+      ORACLE_PWD: ${RAFA_ORACLE_PWD}
+      RAFA_DATASOURCE_PASSWORD: ${RAFA_DATASOURCE_PASSWORD}
+      RAFA_DATASOURCE_USER: ${RAFA_DATASOURCE_USER}
+    volumes:
+      - ./volumes/rafa-db/oradata/:/opt/oracle/oradata/
+      - ./volumes/rafa-db/setup-scripts/:/opt/oracle/scripts/startup/
+      - ./volumes/rafa-db/backup/:/home/oracle/
+      #- ./volumes/rafa-db/setup-scripts/:/opt/oracle/scripts/setup/
+    labels:
+      # pour envoyer les logs dans le puits de log de l'abes
+      - "co.elastic.logs/enabled=true"
+      - "co.elastic.logs/processors.add_fields.target="
+      - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
+      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=postgresql"
+
+  ##############################
+  # rafa-db2
+  # Base de données postgresql de rafa
+  ##############################
+  rafa-db2:
+    image: abesesr/postgres-fr_fr:15.4.0
+    container_name: rafa-db2
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    cpus: ${CPU_LIMIT}
+    ports:
+      - ${RAFA_DB_POSTGRES_PORT}:5432
+    environment:
+      # cf https://github.com/docker-library/docs/blob/master/postgres/README.md#environment-variables
+      POSTGRES_DB: "RAFA"
+      POSTGRES_USER: "RAFA"
+      POSTGRES_PASSWORD: "secret"
+      POSTGRES_HOST_AUTH_METHOD: "password"
+    volumes:
+      - ./volumes/rafa-db/pgdata/:/var/lib/postgresql/data/
+    labels:
+      # pour envoyer les logs dans le puits de log de l'abes
+      - "co.elastic.logs/enabled=true"
+      - "co.elastic.logs/processors.add_fields.target="
+      - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
+      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=postgresql"
+
+
+
+  #################################
+  # rafa-db-adminer
+  # Interface d'admin de postgresql
+  #################################
+  rafa-db-adminer:
+    image: adminer:4.8.1
+    container_name: rafa-db-adminer
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    cpus: ${CPU_LIMIT}
+    ports:
+      - ${RAFA_DB_ADMINER_HTTP_PORT}:8080
+    depends_on:
+      - rafa-db
+    environment:
+      ADMINER_DEFAULT_SERVER: "rafa-db"
+    logging:
+      driver: none # pas de log pour adminer pour ne pas polluer
