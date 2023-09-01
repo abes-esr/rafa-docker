@@ -89,11 +89,40 @@ Les éléments suivants sont à sauvegarder:
 - ``/opt/pod/rafa-docker/.env`` : contient la configuration spécifique de notre déploiement
 - la base de données oracle de Rafa
 
+La base de données Oracle de Rafa est intégrée dans un conteneur docker, pour la sauvegarder voir la procédure suivante :
+- s'assurer que conteneur rafa-db est démarré :
+  ```
+  docker-compose up rafa-db -d
+  ```
+- entrer dans le conteneur :
+  ```
+  docker exec -it rafa-db bash
+  ```
+- lancer les commandes suivantes :
+  ```
+  echo "CREATE OR REPLACE DIRECTORY EXP_DIR AS '/home/oracle';" | sqlplus sys/$ORACLE_PWD@//localhost:1521/FREE as sysdba
+  expdp system/$ORACLE_PWD@FREE schemas=RAFA directory=EXP_DIR dumpfile=rafa-db.dmp logfile=rafa-db.log
+  ```
+
 ### Restauration depuis une sauvegarde
 
 Réinstallez l'application rafa depuis la [procédure d'installation ci-dessus](#installation) et récupéré depuis les sauvegardes le fichier ``.env`` et placez le dans ``/opt/pod/rafa-docker/.env`` sur la machine qui doit faire repartir rafa.
 
-Restaurez ensuite la dernière version de la base de données oracle de rafa.
+Restaurez ensuite la dernière version de la base de données oracle de rafa comme ceci :
+- s'assurer que conteneur rafa-db est démarré :
+  ```
+  docker-compose up rafa-db -d
+  ```
+- entrer dans le conteneur :
+  ```
+  docker exec -it rafa-db bash
+  ```
+- lancer les commandes suivantes :
+  ```
+  echo "CREATE OR REPLACE DIRECTORY EXP_DIR AS '/home/oracle';" | sqlplus sys/$ORACLE_PWD@//localhost:1521/FREE as sysdba
+  impdp system/$ORACLE_PWD@FREE schemas=RAFA  remap_schema=RAFA:RAFA TABLE_EXISTS_ACTION=REPLACE directory=EXP_DIR dumpfile=rafa-db.dmp logfile=rafa-db.log
+  ```
+
 
 Lancez alors toute l'application rafa et vérifiez qu'elle fonctionne bien :
 ```bash
