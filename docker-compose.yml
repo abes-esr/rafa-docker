@@ -119,7 +119,7 @@ services:
   # rafa-db-dumper
   #######################################
   rafa-db-dumper:
-    image: oracle-db-backup:23.2.0.0
+    image: abesesr/oracle-db-backup:free-23.2.0.1
     container_name: rafa-db-dumper
     restart: unless-stopped
     mem_limit: ${MEM_LIMIT}

@@ -1,5 +1,4 @@
 .env
-images/
 .idea/
 volumes/rafa-db/backup/
 volumes/rafa-db/oradata/
