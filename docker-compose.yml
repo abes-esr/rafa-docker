@@ -105,14 +105,44 @@ services:
     volumes:
       - ./volumes/rafa-db/oradata/:/opt/oracle/oradata/
       - ./volumes/rafa-db/setup-scripts/:/opt/oracle/scripts/startup/
-      - ./volumes/rafa-db/backup/:/home/oracle/
-      #- ./volumes/rafa-db/setup-scripts/:/opt/oracle/scripts/setup/
+      # Attention : ce volume doit être identique à celui présent dans le conteneur rafa-db-dumper
+      # pour que les sauvegardes puissent se faire correctement
+      - ./volumes/rafa-db/backup/:/backup/
     labels:
       # pour envoyer les logs dans le puits de log de l'abes
       - "co.elastic.logs/enabled=true"
       - "co.elastic.logs/processors.add_fields.target="
       - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
-      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=postgresql"
+      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=oracle"
+
+  #######################################
+  # rafa-db-dumper
+  #######################################
+  rafa-db-dumper:
+    image: oracle-db-backup:23.2.0.0
+    container_name: rafa-db-dumper
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    cpus: ${CPU_LIMIT}
+    environment:
+      ORACLE_DB_DUMPER_HOST: "rafa-db"
+      ORACLE_DB_DUMPER_PORT: 1521
+      ORACLE_DB_DUMPER_ORACLE_PWD: ${RAFA_ORACLE_PWD}
+      ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP: ${RAFA_DATASOURCE_USER}
+      ORACLE_DB_DUMPER_DUMPNAME_PATTERN: "rafa-db-$(date +'%Y-%m-%d')"
+      ORACLE_DB_BACKUP_CLEANUP_TIME: "7" # nbr de jours de backup à conserver
+    volumes:
+      # Attention : ce volume doit être identique à celui présent dans le conteneur rafa-db
+      # pour que les sauvegardes puissent se faire correctement
+      - ./volumes/rafa-db/backup/:/backup/
+    labels:
+      # pour envoyer les logs dans le puits de log de l'abes
+      - "co.elastic.logs/enabled=true"
+      - "co.elastic.logs/processors.add_fields.target="
+      - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
+      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=oracle-db-backup"
+
 
   ##############################
   # rafa-db2
