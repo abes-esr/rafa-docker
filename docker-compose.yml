@@ -125,6 +125,9 @@ services:
     mem_limit: ${MEM_LIMIT}
     memswap_limit: ${MEM_LIMIT}
     cpus: ${CPU_LIMIT}
+    depends_on:
+      rafa-db:
+        condition: service_healthy
     environment:
       ORACLE_DB_DUMPER_HOST: "rafa-db"
       ORACLE_DB_DUMPER_PORT: 1521
