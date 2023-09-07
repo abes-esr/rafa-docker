@@ -40,7 +40,15 @@ cp .env-dist .env
 # personnaliser alors le contenu du .env
 ```
 
-Démarrer l'application :
+Initialisation de la base de données en partant du dump d'une sauvegarde, par exemple `rafa-db-2023-09-07.dmp` qu'il faut préalablement déposer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/` :
+```bash
+cd /opt/pod/rafa-docker/
+docker-compose up -d rafa-db rafa-db-dumper
+docker exec -it rafa-db-dumper bash
+impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP TABLE_EXISTS_ACTION=REPLACE directory=BACKUP_DIR dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.log
+```
+
+Au final on peut démarrer le reste de l'application comme ceci :
 ```bash
 cd /opt/pod/rafa-docker/
 docker-compose up --build -d
@@ -87,22 +95,7 @@ Pour configurer l'application, vous devez créer et personnaliser un fichier ``/
 
 Les éléments suivants sont à sauvegarder:
 - ``/opt/pod/rafa-docker/.env`` : contient la configuration spécifique de notre déploiement
-- la base de données oracle de Rafa
-
-La base de données Oracle de Rafa est intégrée dans un conteneur docker, pour la sauvegarder voir la procédure suivante :
-- s'assurer que conteneur rafa-db est démarré :
-  ```
-  docker-compose up rafa-db -d
-  ```
-- entrer dans le conteneur :
-  ```
-  docker exec -it rafa-db bash
-  ```
-- lancer les commandes suivantes :
-  ```
-  echo "CREATE OR REPLACE DIRECTORY EXP_DIR AS '/home/oracle';" | sqlplus sys/$ORACLE_PWD@//localhost:1521/FREE as sysdba
-  expdp system/$ORACLE_PWD@FREE schemas=RAFA directory=EXP_DIR dumpfile=rafa-db.dmp logfile=rafa-db.log
-  ```
+- la base de données oracle de Rafa dont les dumps sont periodiquement et automatiquement générés dans le répertoire ``/opt/pod/rafa-docker/volumes/rafa-db/backup/``
 
 ### Restauration depuis une sauvegarde
 
@@ -119,8 +112,8 @@ Restaurez ensuite la dernière version de la base de données oracle de rafa com
   ```
 - lancer les commandes suivantes :
   ```
-  echo "CREATE OR REPLACE DIRECTORY EXP_DIR AS '/home/oracle';" | sqlplus sys/$ORACLE_PWD@//localhost:1521/FREE as sysdba
-  impdp system/$ORACLE_PWD@FREE schemas=RAFA  remap_schema=RAFA:RAFA TABLE_EXISTS_ACTION=REPLACE directory=EXP_DIR dumpfile=rafa-db.dmp logfile=rafa-db.log
+  docker exec -it rafa-db-dumper bash
+  impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP TABLE_EXISTS_ACTION=REPLACE directory=BACKUP_DIR dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.log
   ```
 
 
