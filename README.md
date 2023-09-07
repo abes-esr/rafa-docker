@@ -29,7 +29,9 @@ Déployer la configuration docker dans un répertoire :
 # adaptez /opt/pod/ avec l'emplacement où vous souhaitez déployer l'application
 cd /opt/pod/
 git clone https://github.com/abes-esr/rafa-docker.git
-mkdir -p rafa-docker/images/
+
+cd /opt/pod/rafa-docker/
+mkdir -p images/
 git clone -b docker https://git.abes.fr/depots/Rafa.git rafa-docker/images/Rafa/
 ```
 
@@ -44,7 +46,7 @@ Initialisation de la base de données en partant du dump d'une sauvegarde, par e
 ```bash
 cd /opt/pod/rafa-docker/
 chmod 777 ./volumes/rafa-db/oradata/ ./volumes/rafa-db/backup/
-docker-compose up -d rafa-db rafa-db-dumper
+docker-compose up -d rafa-db rafa-db-dumper # a noter que le premier démarrage peut prendre jusque à 10 minutes
 docker exec -it rafa-db-dumper bash
 impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP TABLE_EXISTS_ACTION=REPLACE directory=BACKUP_DIR dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.log
 ```
