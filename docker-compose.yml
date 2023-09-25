@@ -51,7 +51,6 @@ services:
 
 
 
-
   ####################################
   # Batch de rafa
   ####################################
@@ -146,53 +145,3 @@ services:
       - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
       - "co.elastic.logs/processors.add_fields.fields.abes_middleware=oracle-db-backup"
 
-
-  ##############################
-  # rafa-db2
-  # Base de données postgresql de rafa
-  ##############################
-  rafa-db2:
-    image: abesesr/postgres-fr_fr:15.4.0
-    container_name: rafa-db2
-    restart: unless-stopped
-    mem_limit: ${MEM_LIMIT}
-    memswap_limit: ${MEM_LIMIT}
-    cpus: ${CPU_LIMIT}
-    ports:
-      - ${RAFA_DB_POSTGRES_PORT}:5432
-    environment:
-      # cf https://github.com/docker-library/docs/blob/master/postgres/README.md#environment-variables
-      POSTGRES_DB: "RAFA"
-      POSTGRES_USER: "RAFA"
-      POSTGRES_PASSWORD: "secret"
-      POSTGRES_HOST_AUTH_METHOD: "password"
-    volumes:
-      - ./volumes/rafa-db/pgdata/:/var/lib/postgresql/data/
-    labels:
-      # pour envoyer les logs dans le puits de log de l'abes
-      - "co.elastic.logs/enabled=true"
-      - "co.elastic.logs/processors.add_fields.target="
-      - "co.elastic.logs/processors.add_fields.fields.abes_appli=rafa"
-      - "co.elastic.logs/processors.add_fields.fields.abes_middleware=postgresql"
-
-
-
-  #################################
-  # rafa-db-adminer
-  # Interface d'admin de postgresql
-  #################################
-  rafa-db-adminer:
-    image: adminer:4.8.1
-    container_name: rafa-db-adminer
-    restart: unless-stopped
-    mem_limit: ${MEM_LIMIT}
-    memswap_limit: ${MEM_LIMIT}
-    cpus: ${CPU_LIMIT}
-    ports:
-      - ${RAFA_DB_ADMINER_HTTP_PORT}:8080
-    depends_on:
-      - rafa-db
-    environment:
-      ADMINER_DEFAULT_SERVER: "rafa-db"
-    logging:
-      driver: none # pas de log pour adminer pour ne pas polluer
