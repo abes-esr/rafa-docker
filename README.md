@@ -162,3 +162,10 @@ sed -i "s#^RAFA_VERSION=.*$#RAFA_VERSION=$RAFA_LAST_VERSION#g" /opt/pod/rafa-doc
 docker-compose up --build -d
 ```
 
+### Copier les données d'une instance de Rafa vers une autre
+
+Pour cela on peut utiliser l'outil SQL developer et utiliser sa fonctionnalité `Copie de base de données` : 
+![image](https://github.com/abes-esr/rafa-docker/assets/328244/b2321eb7-3612-46d1-8e73-8705f5782d21)
+
+Remarque : la copie des données de Rafa entre un Oracle 12c et un Oracle 23.2 fonctionne.
+
