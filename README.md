@@ -45,7 +45,7 @@ cp .env-dist .env
 Initialisation de la base de données en partant du dump d'une sauvegarde, par exemple `rafa-db-2023-09-07.dmp` qu'il faut préalablement déposer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/` :
 ```bash
 cd /opt/pod/rafa-docker/
-chmod 777 ./volumes/rafa-db/oradata/ ./volumes/rafa-db/backup/
+chmod 777 -R ./volumes/rafa-db/oradata/ ./volumes/rafa-db/backup/ ./volumes/rafa-db/setup-scripts/
 docker-compose up -d rafa-db rafa-db-dumper # a noter que le premier démarrage peut prendre jusque à 10 minutes
 docker exec -it rafa-db-dumper bash
 impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP TABLE_EXISTS_ACTION=REPLACE directory=BACKUP_DIR dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.log
