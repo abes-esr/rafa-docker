@@ -10,7 +10,7 @@ version: "3.5"
 
 x-common-variables: &rafa_variables
   APPLIS_ENV: ${APPLIS_ENV}
-  rafa.dataSource.jdbcUrl: ${RAFA_DATASOURCE_JDBCURL}
+  rafa.dataSource.jdbcUrl: "jdbc:oracle:thin:@//rafa-db:1521/FREE"
   rafa.dataSource.user: ${RAFA_DATASOURCE_USER}
   rafa.dataSource.password: ${RAFA_DATASOURCE_PASSWORD}
 
