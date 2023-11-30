@@ -16,6 +16,7 @@ https://git.abes.fr/depots/Rafa/
 Les URLs correspondantes aux déploiements en local, test et prod de rafa sont les suivantes :
 
 - local : http://127.0.0.1:15180/
+- dev : https://rafa-dev.abes.fr
 - test : https://rafa-test.abes.fr
 - prod : https://rafa.abes.fr
 
