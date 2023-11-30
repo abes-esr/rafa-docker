@@ -130,6 +130,8 @@ docker-compose up -d
 
 ### Mise à jour du code source de Rafa
 
+TLDR : une procédure à copier coller est dispo dans la [section juste après](#mise-à-jour-et-déploiement-automatique-vers-la-dernière-version-de-rafa)
+
 Dans le cas où une nouvelle version de Rafa est à déployer, son code source aura été mis à jour ici : https://git.abes.fr/depots/Rafa
 
 Il est alors nécessaire de mettre à jour le code source de Rafa dans le répertoire `/opt/pod/rafa-docker/images/Rafa/` et de le caler sur la version cible (exemple: 1.18.19) :
