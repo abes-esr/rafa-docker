@@ -4,6 +4,9 @@
 
 Configuration docker 🐳 pour déployer l'application Rafa (référentiel des annuaires fonctionnels de l'Abes).
 
+![image](https://github.com/abes-esr/rafa-docker/assets/328244/1bf18055-d992-4da7-b922-57856261e104)
+
+
 Le code source (non opensource car vieux code) de rafa est accessible ici :
 https://git.abes.fr/depots/Rafa/
 
