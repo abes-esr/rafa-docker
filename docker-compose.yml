@@ -9,10 +9,10 @@
 version: "3.5"
 
 x-common-variables: &rafa_variables
-  APPLIS_ENV: ${APPLIS_ENV}
+  APPLIS_ENV: ${RAFA_ENV}
   rafa.dataSource.jdbcUrl: "jdbc:oracle:thin:@//rafa-db:1521/FREE"
-  rafa.dataSource.user: ${RAFA_DATASOURCE_USER}
-  rafa.dataSource.password: ${RAFA_DATASOURCE_PASSWORD}
+  rafa.dataSource.user: ${RAFA_DB_DATASOURCE_USER}
+  rafa.dataSource.password: ${RAFA_DB_DATASOURCE_PASSWORD}
 
 services:
 
@@ -35,11 +35,11 @@ services:
         condition: service_healthy
     environment:
       <<: *rafa_variables
-      rafa.mail.smtp.host: ${RAFA_MAIL_SMTP_HOST}
-      rafa.mail.smtp.port: ${RAFA_MAIL_SMTP_PORT}
-      rafa.mail.smtp.username: ${RAFA_MAIL_SMTP_USERNAME}
-      rafa.mail.smtp.password: ${RAFA_MAIL_SMTP_PASSWORD}
-      rafa.mail.smtp.from: ${RAFA_MAIL_SMTP_FROM}
+      rafa.mail.smtp.host: ${RAFA_WEB_MAIL_SMTP_HOST}
+      rafa.mail.smtp.port: ${RAFA_WEB_MAIL_SMTP_PORT}
+      rafa.mail.smtp.username: ${RAFA_WEB_MAIL_SMTP_USERNAME}
+      rafa.mail.smtp.password: ${RAFA_WEB_MAIL_SMTP_PASSWORD}
+      rafa.mail.smtp.from: ${RAFA_WEB_MAIL_SMTP_FROM}
     ports:
       - ${RAFA_WEB_HTTP_PORT}:8080
     labels:
@@ -98,9 +98,9 @@ services:
     ports:
       - ${RAFA_DB_ORACLE_PORT}:1521
     environment:
-      ORACLE_PWD: ${RAFA_ORACLE_PWD}
-      RAFA_DATASOURCE_PASSWORD: ${RAFA_DATASOURCE_PASSWORD}
-      RAFA_DATASOURCE_USER: ${RAFA_DATASOURCE_USER}
+      ORACLE_PWD: ${RAFA_DB_ORACLE_PWD}
+      RAFA_DATASOURCE_PASSWORD: ${RAFA_DB_DATASOURCE_PASSWORD}
+      RAFA_DATASOURCE_USER: ${RAFA_DB_DATASOURCE_USER}
     volumes:
       - ./volumes/rafa-db/oradata/:/opt/oracle/oradata/
       - ./volumes/rafa-db/setup-scripts/:/opt/oracle/scripts/startup/
@@ -130,8 +130,8 @@ services:
     environment:
       ORACLE_DB_DUMPER_HOST: "rafa-db"
       ORACLE_DB_DUMPER_PORT: 1521
-      ORACLE_DB_DUMPER_ORACLE_PWD: ${RAFA_ORACLE_PWD}
-      ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP: ${RAFA_DATASOURCE_USER}
+      ORACLE_DB_DUMPER_ORACLE_PWD: ${RAFA_DB_ORACLE_PWD}
+      ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP: ${RAFA_DB_DATASOURCE_USER}
       ORACLE_DB_DUMPER_DUMPNAME_PATTERN: "rafa-db-$(date +'%Y-%m-%d')"
       ORACLE_DB_BACKUP_CLEANUP_TIME: "7" # nbr de jours de backup à conserver
     volumes:
