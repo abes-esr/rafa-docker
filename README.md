@@ -7,7 +7,7 @@ Configuration docker 🐳 pour déployer l'application Rafa (référentiel des a
 ![image](https://github.com/abes-esr/rafa-docker/assets/328244/1bf18055-d992-4da7-b922-57856261e104)
 
 
-Le code source (non opensource car vieux code) de rafa est accessible ici :
+Le code source (non opensource car vieux code) de rafa est accessible ici :  
 https://git.abes.fr/depots/Rafa/
 
 
@@ -24,7 +24,7 @@ Les URLs correspondantes aux déploiements en local, test et prod de rafa sont l
 
 Disposer de :
 - ``docker``
-- ``docker-compose``
+- ``docker compose``
 
 ## Installation
 
@@ -50,15 +50,19 @@ Initialisation de la base de données en partant du dump d'une sauvegarde, par e
 ```bash
 cd /opt/pod/rafa-docker/
 chmod 777 -R ./volumes/rafa-db/oradata/ ./volumes/rafa-db/backup/ ./volumes/rafa-db/setup-scripts/
-docker-compose up -d rafa-db rafa-db-dumper # a noter que le premier démarrage peut prendre jusque à 10 minutes
+docker compose up -d rafa-db rafa-db-dumper # a noter que le premier démarrage peut prendre jusque à 10 minutes
 docker exec -it rafa-db-dumper bash
-impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP TABLE_EXISTS_ACTION=REPLACE directory=BACKUP_DIR dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.log
+impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE \
+      schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
+      TABLE_EXISTS_ACTION=REPLACE \
+      directory=BACKUP_DIR \
+      dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.impdp.log
 ```
 
 Au final on peut démarrer le reste de l'application comme ceci :
 ```bash
 cd /opt/pod/rafa-docker/
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ## Démarrage et arrêt
@@ -67,7 +71,7 @@ docker-compose up --build -d
 # pour démarrer l'application (ou pour appliquer des modifications 
 # faites dans /opt/pod/rafa-docker/.env)
 cd /opt/pod/rafa-docker/
-docker-compose up -d
+docker compose up -d
 ```
 
 Remarque : retirer le ``-d`` pour voir passer les logs dans le terminal et utiliser alors CTRL+C pour stopper l'application
@@ -75,12 +79,12 @@ Remarque : retirer le ``-d`` pour voir passer les logs dans le terminal et utili
 ```bash
 # pour stopper l'application
 cd /opt/pod/rafa-docker/
-docker-compose stop
+docker compose stop
 
 
 # pour redémarrer l'application
 cd /opt/pod/rafa-docker/
-docker-compose restart
+docker compose restart
 ```
 
 ## Supervision
@@ -88,7 +92,7 @@ docker-compose restart
 ```bash
 # pour visualiser les logs de l'appli
 cd /opt/pod/rafa-docker/
-docker-compose logs -f --tail=100
+docker compose logs -f --tail=100
 ```
 
 Cela va afficher les 100 dernière lignes de logs générées par l'application et toutes les suivantes jusqu'au CTRL+C qui stoppera l'affichage temps réel des logs.
@@ -109,25 +113,48 @@ Les éléments suivants sont à sauvegarder:
 Réinstallez l'application rafa depuis la [procédure d'installation ci-dessus](#installation) et récupéré depuis les sauvegardes le fichier ``.env`` et placez le dans ``/opt/pod/rafa-docker/.env`` sur la machine qui doit faire repartir rafa.
 
 Restaurez ensuite la dernière version de la base de données oracle de rafa comme ceci :
-- s'assurer que conteneur rafa-db est démarré :
+- localiser le nom du fichier à restaurer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/`, exemple :
   ```
-  docker-compose up rafa-db -d
+  -rw-rw----+ 1                54321 docker@levant.abes.fr 8376320 Dec  3 05:52 rafa-db-2023-12-03.dmp
+  -rw-rw----+ 1                54321 docker@levant.abes.fr    5617 Dec  3 05:52 rafa-db-2023-12-03.log
+  -rw-rw----+ 1                54321 docker@levant.abes.fr 8376320 Dec  4 05:52 rafa-db-2023-12-04.dmp
+  -rw-rw----+ 1                54321 docker@levant.abes.fr     436 Dec  4 09:51 rafa-db-2023-12-04.log
+  ```
+- s'assurer que les conteneurs rafa-db et rafa-db-dumper sont démarrés :
+  ```
+  docker compose up rafa-db rafa-db-dumper -d
   ```
 - entrer dans le conteneur :
   ```
-  docker exec -it rafa-db bash
-  ```
-- lancer les commandes suivantes :
-  ```
   docker exec -it rafa-db-dumper bash
-  impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP TABLE_EXISTS_ACTION=REPLACE directory=BACKUP_DIR dumpfile=rafa-db-2023-09-07.dmp logfile=rafa-db-2023-09-07.log
   ```
-
+- lancer la commandes suivantes (en remplaçant le nom du fichier) :
+  ```bash
+  impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE \
+        schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
+        TABLE_EXISTS_ACTION=REPLACE \
+        directory=BACKUP_DIR \
+        dumpfile=rafa-db-2023-12-04.dmp \
+        logfile=rafa-db-2023-12-04.impdp.log
+  ```
 
 Lancez alors toute l'application rafa et vérifiez qu'elle fonctionne bien :
 ```bash
 cd /opt/pod/rafa-docker/
-docker-compose up -d
+docker compose up -d
+```
+
+### Vider complètement la base de données
+
+Il peut être utile de recharger depuis zéro la base de données dans le cadre d'une restauration. Pöur cela il est recommandé de nettoyer complètement la base de données en supprimant totalement le répertoire où Oracle stock ses données.
+
+Voici comment procéder :
+```bash
+cd /opt/pod/rafa-docker/
+docker down compose rafa-db rafa-db-dumper
+rm -rf /opt/pod/rafa-docker/volumes/rafa-db/oradata/
+git checkout /opt/pod/rafa-docker/volumes/rafa-db/oradata/
+chmod -R 777 /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 ```
 
 ## Développements
@@ -152,7 +179,7 @@ sed -i 's#^RAFA_VERSION=.*$#RAFA_VERSION=1.18.19#g' /opt/pod/rafa-docker/.env
 Puis de rebuilder les images et de redéployer les conteneurs dans cette nouvelle version :
 ```bash
 cd /opt/pod/rafa-docker/
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ### Mise à jour et déploiement automatique vers la dernière version de Rafa
@@ -165,7 +192,7 @@ RAFA_LAST_VERSION=$(git describe --tags --abbrev=0)
 git pull origin $RAFA_LAST_VERSION
 cd /opt/pod/rafa-docker/
 sed -i "s#^RAFA_VERSION=.*$#RAFA_VERSION=$RAFA_LAST_VERSION#g" /opt/pod/rafa-docker/.env
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ### Copier les données d'une instance de Rafa vers une autre
