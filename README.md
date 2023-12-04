@@ -200,5 +200,8 @@ docker compose up --build -d
 Pour cela on peut utiliser l'outil SQL developer et utiliser sa fonctionnalité `Copie de base de données` : 
 ![image](https://github.com/abes-esr/rafa-docker/assets/328244/b2321eb7-3612-46d1-8e73-8705f5782d21)
 
+![image](https://github.com/abes-esr/rafa-docker/assets/328244/1c7a1d60-10f3-4b6f-8506-465652997cc0)
+
+
 Remarque : la copie des données de Rafa entre un Oracle 12c et un Oracle 23.2 fonctionne.
 
