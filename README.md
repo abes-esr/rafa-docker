@@ -36,7 +36,7 @@ git clone https://github.com/abes-esr/rafa-docker.git
 
 cd /opt/pod/rafa-docker/
 mkdir -p images/
-git clone -b docker https://git.abes.fr/depots/Rafa.git ./images/Rafa/
+git clone https://git.abes.fr/depots/Rafa.git ./images/Rafa/
 ```
 
 Configurer l'application depuis l'exemple du [fichier ``.env-dist``](./.env-dist) (ce fichier contient la liste des variables avec des explications et des exemples de valeurs) :
