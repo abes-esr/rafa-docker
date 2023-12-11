@@ -36,22 +36,22 @@ git clone https://github.com/abes-esr/rafa-docker.git
 
 cd /opt/pod/rafa-docker/
 mkdir -p images/
-git clone -b docker https://git.abes.fr/depots/Rafa.git ./images/Rafa/
+git clone https://git.abes.fr/depots/Rafa.git ./images/Rafa/
 ```
 
 Configurer l'application depuis l'exemple du [fichier ``.env-dist``](./.env-dist) (ce fichier contient la liste des variables avec des explications et des exemples de valeurs) :
 ```bash
-cd /opt/pod/rafa-docker/
+cd /opt/pod/rafa-/
 cp .env-dist .env
 # personnaliser alors le contenu du .env
 ```
 
-Initialisation de la base de données en partant du dump d'une sauvegarde, par exemple `rafa-db-2023-09-07.dmp` qu'il faut préalablement déposer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/` :
+Initialisation de la base de données en partant du dump d'une sauvegarde, par exemple `rafa-db-2023-09-07.dmp` qu'il faut préalablement déposer dans le répertoire `/opt/pod/rafa-/volumes/rafa-db/backup/` :
 ```bash
-cd /opt/pod/rafa-docker/
+cd /opt/pod/rafa-/
 chmod 777 -R ./volumes/rafa-db/oradata/ ./volumes/rafa-db/backup/ ./volumes/rafa-db/setup-scripts/
-docker compose up -d rafa-db rafa-db-dumper # a noter que le premier démarrage peut prendre jusque à 10 minutes
-docker exec -it rafa-db-dumper bash
+ compose up -d rafa-db rafa-db-dumper # a noter que le premier démarrage peut prendre jusque à 10 minutes
+ exec -it rafa-db-dumper bash
 impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE \
       schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
       TABLE_EXISTS_ACTION=REPLACE \
@@ -61,30 +61,30 @@ impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DU
 
 Au final on peut démarrer le reste de l'application comme ceci :
 ```bash
-cd /opt/pod/rafa-docker/
-docker compose up --build -d
+cd /opt/pod/rafa-/
+ compose up --build -d
 ```
 
 ## Démarrage et arrêt
 
 ```bash
 # pour démarrer l'application (ou pour appliquer des modifications 
-# faites dans /opt/pod/rafa-docker/.env)
-cd /opt/pod/rafa-docker/
-docker compose up -d
+# faites dans /opt/pod/rafa-/.env)
+cd /opt/pod/rafa-/
+ compose up -d
 ```
 
 Remarque : retirer le ``-d`` pour voir passer les logs dans le terminal et utiliser alors CTRL+C pour stopper l'application
 
 ```bash
 # pour stopper l'application
-cd /opt/pod/rafa-docker/
-docker compose stop
+cd /opt/pod/rafa-/
+ compose stop
 
 
 # pour redémarrer l'application
-cd /opt/pod/rafa-docker/
-docker compose restart
+cd /opt/pod/rafa-/
+ compose restart
 ```
 
 ## Supervision
