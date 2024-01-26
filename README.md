@@ -191,7 +191,7 @@ git fetch --tags
 RAFA_LAST_VERSION=$(git describe --tags --abbrev=0)
 git pull origin $RAFA_LAST_VERSION
 cd /opt/pod/rafa-docker/
-sed -i "s#^RAFA_VERSION=.*$#RAFA_VERSION=$RAFA_LAST_VERSION#g" /opt/pod/rafa-docker/.env
+sed -i "s#^RAFA_VERSION=.*\$#RAFA_VERSION=$RAFA_LAST_VERSION#g" /opt/pod/rafa-docker/.env
 docker compose up --build -d
 ```
 
