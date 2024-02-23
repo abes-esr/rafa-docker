@@ -88,7 +88,8 @@ docker compose stop
 docker compose start
 ```
 
-**Attention** : ne jamais utiliser la commande ``docker compose restart`` car cette dernière ne respecte pas [la directive ``depends_on`` de ``rafa-web``](https://github.com/abes-esr/rafa-docker/blob/dd9a39000540b441107dfbca16a751f9c158a342/docker-compose.yml#L33-L35). Et cela provoquera une erreur 404 au démarrage du conteneur ``rafa-web`` car son WAR n'arrivera pas à se déployer du fait que ``rafa-db`` n'est pas encore démarré.
+**Point d'attention** : éviter d'utiliser la commande ``docker compose restart`` car cette dernière ne respecte pas [la directive ``depends_on`` de ``rafa-web``](https://github.com/abes-esr/rafa-docker/blob/dd9a39000540b441107dfbca16a751f9c158a342/docker-compose.yml#L33-L35) et cela provoquera une erreur 404 temporaire au démarrage du conteneur ``rafa-web`` car son WAR n'arrivera pas à se déployer du fait que ``rafa-db`` n'est pas encore démarré. Cette erreur 404 sera temporaire car un système automatique de redémarrage du conteneur ``rafa-web`` a été mise en place à partir du 23/02/2024.
+
 
 ## Supervision
 
