@@ -6,8 +6,6 @@
 # à personnaliser et des exemples de valeurs.
 #
 
-version: "3.5"
-
 x-common-variables: &rafa_variables
   APPLIS_ENV: ${RAFA_ENV}
   rafa.dataSource.jdbcUrl: "jdbc:oracle:thin:@//rafa-db:1521/FREE"
