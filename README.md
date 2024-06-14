@@ -153,7 +153,7 @@ Il peut être utile de recharger depuis zéro la base de données dans le cadre 
 Voici comment procéder :
 ```bash
 cd /opt/pod/rafa-docker/
-docker down compose rafa-db rafa-db-dumper
+docker compose down rafa-db rafa-db-dumper
 rm -rf /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 git checkout /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 chmod -R 777 /opt/pod/rafa-docker/volumes/rafa-db/oradata/
