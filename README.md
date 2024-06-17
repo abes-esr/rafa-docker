@@ -126,9 +126,11 @@ Restaurez ensuite la dernière version de la base de données oracle de rafa com
   ```
   docker compose up rafa-db rafa-db-dumper -d
   ```
-- entrer dans le conteneur :
+- entrer dans le conteneur, identifiez le dump à restaurer et régler éventuellement ses droits (l'outil de restauration est très sensible aux droits positionnés sur le fichier dmp) :
   ```
   docker exec -it rafa-db-dumper bash
+  chown oracle /backup/rafa-db-2024-06-15.dmp
+  chmod 660 /backup/rafa-db-2024-06-15.dmp
   ```
 - lancer la commandes suivantes (en remplaçant le nom du fichier) :
   ```bash
@@ -136,8 +138,8 @@ Restaurez ensuite la dernière version de la base de données oracle de rafa com
         schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
         TABLE_EXISTS_ACTION=REPLACE \
         directory=BACKUP_DIR \
-        dumpfile=rafa-db-2023-12-04.dmp \
-        logfile=rafa-db-2023-12-04.impdp.log
+        dumpfile=rafa-db-2023-06-15.dmp \
+        logfile=rafa-db-2023-06-15.impdp.log
   ```
 
 Lancez alors toute l'application rafa et vérifiez qu'elle fonctionne bien :
