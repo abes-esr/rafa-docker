@@ -161,7 +161,7 @@ git checkout /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 chmod -R 777 /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 ```
 
-## Développements
+## Procédures d'exploitations
 
 ### Mise à jour du code source de Rafa
 
@@ -209,3 +209,19 @@ Pour cela on peut utiliser l'outil SQL developer et utiliser sa fonctionnalité 
 
 Remarque : la copie des données de Rafa entre un Oracle 12c et un Oracle 23.2 fonctionne.
 
+### Régler le mot de passe ORACLE si il expire
+
+Une erreur rencontrée le 13/11/2024 était le fait que le mot de passe d'ORACLE avait expiré. Ce bug était lié au réglage initial du mot de passe SYSTEM qui était réglé avec une expiration.
+Voici les commandes passées pour désactiver l'expiration du mot de passe SYSTEM (remplacer "xxxxxxxxxxxxx" par le mot de passe venant de la variable ``RAFA_DB_ORACLE_PWD``) :
+```bash
+# rentrer dans le conteneur
+docker exec -it rafa-db bash
+
+# lancer le client sql d'oracle, visualiser les mdp expirés et régler les expirations des mots de passes
+sqlplus /nolog
+connect / as SYSDBA
+SELECT username, account_status FROM dba_users WHERE ACCOUNT_STATUS LIKE '%EXPIRED%';
+ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
+alter user SYSTEM identified by xxxxxxxxxxxxx account unlock;
+commit;
+```
