@@ -211,7 +211,7 @@ Remarque : la copie des données de Rafa entre un Oracle 12c et un Oracle 23.2 f
 
 ### Régler le mot de passe ORACLE si il expire
 
-Une erreur rencontrée le 13/11/2024 était le fait que le mot de passe d'ORACLE avait expiré. Ce bug était lié au réglage initial du mot de passe SYSTEM qui était réglé avec une expiration.
+Une erreur rencontrée le 13/11/2024 était liée au mot de passe d'ORACLE qui avait expiré et qui empêchait le conteneur rafa-db-dumper de fonctionner. Ce bug était lié au réglage initial du mot de passe SYSTEM qui était réglé avec une expiration.
 Voici les commandes passées pour désactiver l'expiration du mot de passe SYSTEM (remplacer "xxxxxxxxxxxxx" par le mot de passe venant de la variable ``RAFA_DB_ORACLE_PWD``) :
 ```bash
 # rentrer dans le conteneur
