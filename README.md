@@ -225,3 +225,7 @@ ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 alter user SYSTEM identified by xxxxxxxxxxxxx account unlock;
 commit;
 ```
+
+### Autres procédures
+
+[Ci-dessous le lien vers notre documentation interne](https://abesfr.sharepoint.com/:w:/r/sites/Bouda/AppliSupport/Rafa/Documentation/RAFA_Procedures_pour_le_maintien_en_conditions_operationnelles.docx?d=wd902d9a46ae444c296170fe8eab32275&csf=1&web=1&e=d60soF) permettant de débloquer certaines situation non prévue dans les fonctionnalités de Rafa (ex: administrer les rôles).
