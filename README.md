@@ -1,7 +1,5 @@
 # rafa-docker
 
-(travail en cours, non déployé en dev,test,prod)
-
 Configuration docker 🐳 pour déployer l'application Rafa (référentiel des annuaires fonctionnels de l'Abes).
 
 ![image](https://github.com/abes-esr/rafa-docker/assets/328244/1bf18055-d992-4da7-b922-57856261e104)
@@ -88,7 +86,8 @@ docker compose stop
 docker compose start
 ```
 
-**Attention** : ne jamais utiliser la commande ``docker compose restart`` car cette dernière ne respecte pas [la directive ``depends_on`` de ``rafa-web``](https://github.com/abes-esr/rafa-docker/blob/dd9a39000540b441107dfbca16a751f9c158a342/docker-compose.yml#L33-L35). Et cela provoquera une erreur 404 au démarrage du conteneur ``rafa-web`` car son WAR n'arrivera pas à se déployer du fait que ``rafa-db`` n'est pas encore démarré.
+**Point d'attention** : éviter d'utiliser la commande ``docker compose restart`` car cette dernière ne respecte pas [la directive ``depends_on`` de ``rafa-web``](https://github.com/abes-esr/rafa-docker/blob/dd9a39000540b441107dfbca16a751f9c158a342/docker-compose.yml#L33-L35) et cela provoquera une erreur 404 temporaire au démarrage du conteneur ``rafa-web`` car son WAR n'arrivera pas à se déployer du fait que ``rafa-db`` n'est pas encore démarré. Cette erreur 404 sera temporaire car un système automatique de redémarrage du conteneur ``rafa-web`` a été mise en place à partir du 23/02/2024.
+
 
 ## Supervision
 
@@ -116,7 +115,7 @@ Les éléments suivants sont à sauvegarder:
 Réinstallez l'application rafa depuis la [procédure d'installation ci-dessus](#installation) et récupéré depuis les sauvegardes le fichier ``.env`` et placez le dans ``/opt/pod/rafa-docker/.env`` sur la machine qui doit faire repartir rafa.
 
 Restaurez ensuite la dernière version de la base de données oracle de rafa comme ceci :
-- localiser le nom du fichier à restaurer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/`, exemple :
+- localiser ou bien déposer le fichier à restaurer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/`, exemple :
   ```
   -rw-rw----+ 1                54321 docker@levant.abes.fr 8376320 Dec  3 05:52 rafa-db-2023-12-03.dmp
   -rw-rw----+ 1                54321 docker@levant.abes.fr    5617 Dec  3 05:52 rafa-db-2023-12-03.log
@@ -127,9 +126,11 @@ Restaurez ensuite la dernière version de la base de données oracle de rafa com
   ```
   docker compose up rafa-db rafa-db-dumper -d
   ```
-- entrer dans le conteneur :
+- entrer dans le conteneur, identifiez le dump à restaurer et régler éventuellement ses droits (l'outil de restauration est très sensible aux droits positionnés sur le fichier dmp) :
   ```
   docker exec -it rafa-db-dumper bash
+  chown oracle /backup/rafa-db-2024-06-15.dmp
+  chmod 660 /backup/rafa-db-2024-06-15.dmp
   ```
 - lancer la commandes suivantes (en remplaçant le nom du fichier) :
   ```bash
@@ -137,8 +138,8 @@ Restaurez ensuite la dernière version de la base de données oracle de rafa com
         schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
         TABLE_EXISTS_ACTION=REPLACE \
         directory=BACKUP_DIR \
-        dumpfile=rafa-db-2023-12-04.dmp \
-        logfile=rafa-db-2023-12-04.impdp.log
+        dumpfile=rafa-db-2023-06-15.dmp \
+        logfile=rafa-db-2023-06-15.impdp.log
   ```
 
 Lancez alors toute l'application rafa et vérifiez qu'elle fonctionne bien :
@@ -154,13 +155,13 @@ Il peut être utile de recharger depuis zéro la base de données dans le cadre 
 Voici comment procéder :
 ```bash
 cd /opt/pod/rafa-docker/
-docker down compose rafa-db rafa-db-dumper
+docker compose down rafa-db rafa-db-dumper
 rm -rf /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 git checkout /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 chmod -R 777 /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 ```
 
-## Développements
+## Procédures d'exploitations
 
 ### Mise à jour du code source de Rafa
 
@@ -208,3 +209,23 @@ Pour cela on peut utiliser l'outil SQL developer et utiliser sa fonctionnalité 
 
 Remarque : la copie des données de Rafa entre un Oracle 12c et un Oracle 23.2 fonctionne.
 
+### Régler le mot de passe ORACLE si il expire
+
+Une erreur rencontrée le 13/11/2024 était liée au mot de passe d'ORACLE qui avait expiré et qui empêchait le conteneur rafa-db-dumper de fonctionner. Ce bug était lié au réglage initial du mot de passe SYSTEM qui était réglé avec une expiration.
+Voici les commandes passées pour désactiver l'expiration du mot de passe SYSTEM (remplacer "xxxxxxxxxxxxx" par le mot de passe venant de la variable ``RAFA_DB_ORACLE_PWD``) :
+```bash
+# rentrer dans le conteneur
+docker exec -it rafa-db bash
+
+# lancer le client sql d'oracle, visualiser les mdp expirés et régler les expirations des mots de passes
+sqlplus /nolog
+connect / as SYSDBA
+SELECT username, account_status FROM dba_users WHERE ACCOUNT_STATUS LIKE '%EXPIRED%';
+ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
+alter user SYSTEM identified by xxxxxxxxxxxxx account unlock;
+commit;
+```
+
+### Autres procédures
+
+[Ci-dessous le lien vers notre documentation interne](https://abesfr.sharepoint.com/:w:/r/sites/Bouda/AppliSupport/Rafa/Documentation/RAFA_Procedures_pour_le_maintien_en_conditions_operationnelles.docx?d=wd902d9a46ae444c296170fe8eab32275&csf=1&web=1&e=d60soF) permettant de débloquer certaines situation non prévue dans les fonctionnalités de Rafa (ex: administrer les rôles).
