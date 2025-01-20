@@ -40,6 +40,7 @@ services:
       rafa.mail.smtp.username: ${RAFA_WEB_MAIL_SMTP_USERNAME}
       rafa.mail.smtp.password: ${RAFA_WEB_MAIL_SMTP_PASSWORD}
       rafa.mail.smtp.from: ${RAFA_WEB_MAIL_SMTP_FROM}
+      RAFA_WEB_RESTART_IF_404_SLEEP_DELAY: '30s'
     ports:
       - ${RAFA_WEB_HTTP_PORT}:8080
     labels:
