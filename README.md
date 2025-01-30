@@ -115,6 +115,18 @@ Les éléments suivants sont à sauvegarder:
 Réinstallez l'application rafa depuis la [procédure d'installation ci-dessus](#installation) et récupéré depuis les sauvegardes le fichier ``.env`` et placez le dans ``/opt/pod/rafa-docker/.env`` sur la machine qui doit faire repartir rafa.
 
 Restaurez ensuite la dernière version de la base de données oracle de rafa comme ceci :
+
+```bash
+### TRAVAIL EN COURS
+
+ssh devel@sotora ls -ailt /backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/volumes/rafa-db/backup/*.dmp
+# copier/coller alors le nom du dernier fichier, par exemple : rafa-db-2025-01-29.dmp
+
+# lancer ensuite le rsync pour récupérer le dump
+rsync -avL devel@sotora:/backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/volumes/rafa-db/backup/
+opt/pod/rafa-docker/volumes/rafa-db/backup/
+```
+
 - localiser ou bien déposer le fichier à restaurer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/`, exemple :
   ```
   -rw-rw----+ 1                54321 docker@levant.abes.fr 8376320 Dec  3 05:52 rafa-db-2023-12-03.dmp
