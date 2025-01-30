@@ -112,48 +112,57 @@ Les éléments suivants sont à sauvegarder:
 
 ### Restauration depuis une sauvegarde
 
-Réinstallez l'application rafa depuis la [procédure d'installation ci-dessus](#installation) et récupéré depuis les sauvegardes le fichier ``.env`` et placez le dans ``/opt/pod/rafa-docker/.env`` sur la machine qui doit faire repartir rafa.
+Vous pouvez soit procéder à une réinstallation complète de l'application (cf section [procédure d'installation ci-dessus](#installation)), soit procéder à une restauration des données.
 
-Restaurez ensuite la dernière version de la base de données oracle de rafa comme ceci :
+Pour restaurer uniquement les données de l'application, commencez par vous positionner sur le serveur où l'on souhaite restaurer les données de l'application (ici diplotaxis3-test est pris comme exemple) :
 
 ```bash
-### TRAVAIL EN COURS
-
-ssh devel@sotora ls -ailt /backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/volumes/rafa-db/backup/*.dmp
-# copier/coller alors le nom du dernier fichier, par exemple : rafa-db-2025-01-29.dmp
-
-# lancer ensuite le rsync pour récupérer le dump
-rsync -avL devel@sotora:/backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/volumes/rafa-db/backup/
-opt/pod/rafa-docker/volumes/rafa-db/backup/
+ssh diplotaxis3-test
+cd /opt/pod/rafa-docker/
 ```
 
-- localiser ou bien déposer le fichier à restaurer dans le répertoire `/opt/pod/rafa-docker/volumes/rafa-db/backup/`, exemple :
-  ```
-  -rw-rw----+ 1                54321 docker@levant.abes.fr 8376320 Dec  3 05:52 rafa-db-2023-12-03.dmp
-  -rw-rw----+ 1                54321 docker@levant.abes.fr    5617 Dec  3 05:52 rafa-db-2023-12-03.log
-  -rw-rw----+ 1                54321 docker@levant.abes.fr 8376320 Dec  4 05:52 rafa-db-2023-12-04.dmp
-  -rw-rw----+ 1                54321 docker@levant.abes.fr     436 Dec  4 09:51 rafa-db-2023-12-04.log
-  ```
-- s'assurer que les conteneurs rafa-db et rafa-db-dumper sont démarrés :
-  ```
-  docker compose up rafa-db rafa-db-dumper -d
-  ```
-- entrer dans le conteneur, identifiez le dump à restaurer et régler éventuellement ses droits (l'outil de restauration est très sensible aux droits positionnés sur le fichier dmp) :
-  ```
-  docker exec -it rafa-db-dumper bash
-  chown oracle /backup/rafa-db-2024-06-15.dmp
-  chmod 660 /backup/rafa-db-2024-06-15.dmp
-  ```
-- lancer la commandes suivantes (en remplaçant le nom du fichier) :
-  ```bash
-  impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE \
-        schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
-        TABLE_EXISTS_ACTION=REPLACE \
-        directory=BACKUP_DIR \
-        dumpfile=rafa-db-2023-06-15.dmp \
-        logfile=rafa-db-2023-06-15.impdp.log
-  ```
+Restaurez ensuite le ``.env`` depuis les sauvegardes :
 
+```bash
+cd /opt/pod/rafa-docker/
+rsync -av \
+  devel@sotora:/backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/.env \
+  /opt/pod/rafa-docker/
+```
+
+Restaurez ensuite la base de données depuis un dump :
+
+```bash
+cd /opt/pod/rafa-docker/
+
+# récupération du dump depuis le serveur de sauvegardes
+rsync -ravL \
+  devel@sotora:/backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/volumes/rafa-db/backup/rafa-db-2025-01-23.dmp \
+  /opt/pod/rafa-docker/volumes/rafa-db/backup/
+
+# s'assurer que les conteneurs rafa-db et rafa-db-dumper sont démarrés
+docker compose up rafa-db rafa-db-dumper -d
+```
+
+Entrez ensuite dans le conteneur pour régler les droits sur les fichiers de dump car l'outil de restauration est très sensible aux droits positionnés sur le fichier dmp :
+
+```bash
+docker exec -it rafa-db-dumper bash
+chown oracle /backup/rafa-db-2025-01-23.dmp
+chmod 660 /backup/rafa-db-2025-01-23.dmp
+```
+
+Lancez finalement la commande suivante pour importer le dump depuis le conteneur rafa-db-dumper :
+
+```bash
+docker exec -it rafa-db-dumper bash
+impdp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE \
+  schemas=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
+  TABLE_EXISTS_ACTION=REPLACE \
+  directory=BACKUP_DIR \
+  dumpfile=rafa-db-2025-01-23.dmp \
+  logfile=rafa-db-2025-01-23.dmp.impdp.log
+```
 Lancez alors toute l'application rafa et vérifiez qu'elle fonctionne bien :
 ```bash
 cd /opt/pod/rafa-docker/
