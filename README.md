@@ -212,6 +212,7 @@ docker compose up --build -d
 Le script suivant fait tout le travail au dessus en une seule opération en se callant sur la dernière release trouvée :
 ```bash
 cd /opt/pod/rafa-docker/images/Rafa/
+git switch master
 git pull 
 RAFA_LAST_VERSION=$(git describe --tags --abbrev=0)
 git checkout $RAFA_LAST_VERSION
