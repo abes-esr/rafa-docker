@@ -248,6 +248,59 @@ alter user SYSTEM identified by xxxxxxxxxxxxx account unlock;
 commit;
 ```
 
+### Comment corriger l'erreur ORA-12954
+
+Si rafa-db-dumper rencontre ce type d'erreur ``ORA-12954: The request exceeds the maximum allowed database size of 12 GB.`` cela signifie que des tables système d'ORACLE ont accumulé trop d'information (statistiques, historiques) pour la version FREE d'Oracle qui limite la taille à max 12GB. Voici comment procéder pour nettoyer.
+
+Tout d'abord il faut sauvegarder avec l'ancien système de dump d'Oracle (`exp`) car en passant par `expdp` l'erreur se produira :
+```bash
+cd /opt/pod/rafa-docker/
+sudo docker compose stop rafa-web
+sudo docker exec -it rafa-db bash
+exp userid=SYSTEM/$ORACLE_PWD owner=RAFA file=/backup/sauvegarde_urgence.dmp statistics=none
+```
+
+Ensuite il est nécessaire de faire une réinstallation de la base de données depuis zéro et y charger cette export ``sauvegarde_urgence.dmp``. Pour cela il faut stopper les conteneur`s de la base de données, puis nettoyer le répertoire binaire d'Oracle (on se contente dans l'exemple de le déplacer), puis de relancer la base de données (vide) et y charger le dump ``sauvegarde_urgence.dmp`` : 
+```bash
+cd /opt/pod/rafa-docker/
+sudo docker compose down
+mv ./volumes/rafa-db/oradata/ ./volumes/rafa-db/oradata.bak
+mkdir ./volumes/rafa-db/oradata/ && chmod 777 ./volumes/rafa-db/oradata/
+sudo docker compose up rafa-db rafa-db-dumper -d
+# attendre longtemps que la bdd s'initialise (environ 10 min)
+sudo docker exec -it rafa-db-dumper bash
+imp system/$ORACLE_DB_DUMPER_ORACLE_PWD@//$ORACLE_DB_DUMPER_HOST:$ORACLE_DB_DUMPER_PORT/FREE \
+    fromuser=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
+    touser=$ORACLE_DB_DUMPER_ORACLE_SCHEMA_TO_BACKUP \
+    file=sauvegarde_urgence.dmp \
+    log=sauvegarde_urgence.imp.log \
+    ignore=y
+```
+
+Normalement c'est ok à ce moment précis et on peut relancer l'ensemble des conteneurs de l'application avec ``docker compose up -d``
+
+Ci-dessous voici quelques commandes utiles pour vérifier que la base de données est dans le bon état : 
+```
+sudo docker exec -it rafa-db bash
+sqlplus /nolog
+connect / as SYSDBA
+SELECT tablespace_name, 
+       round(SUM(bytes) / 1024 / 1024 / 1024, 2) as used_gb
+FROM dba_data_files
+GROUP BY tablespace_name;
+```
+
+Cette commande devrait retourner à peu près ceci (et si la somme est proche de 12GB, warning car les sauvegardes ne fonctionneront bientôt plus) :
+```
+TABLESPACE_NAME                   USED_GB
+------------------------------ ----------
+SYSTEM                               1.13
+SYSAUX                                .54
+UNDOTBS1                              .04
+USERS                                 .02
+``
+
+
 ### Autres procédures
 
 [Ci-dessous le lien vers notre documentation interne](https://abesfr.sharepoint.com/:w:/r/sites/Bouda/AppliSupport/Rafa/Documentation/RAFA_Procedures_pour_le_maintien_en_conditions_operationnelles.docx?d=wd902d9a46ae444c296170fe8eab32275&csf=1&web=1&e=d60soF) permettant de débloquer certaines situation non prévue dans les fonctionnalités de Rafa (ex: administrer les rôles).
