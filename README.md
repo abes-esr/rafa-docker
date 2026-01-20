@@ -183,6 +183,8 @@ Voici comment procéder :
 cd /opt/pod/rafa-docker/
 docker compose down rafa-db rafa-db-dumper
 rm -rf /opt/pod/rafa-docker/volumes/rafa-db/oradata/
+# si vous n'avez pas les droits, vous pouvez renommer le répertoire comme ceci pour le supprimer plus tard :
+mv /opt/pod/rafa-docker/volumes/rafa-db/oradata/ /opt/pod/rafa-docker/volumes/rafa-db/oradata-to-remove/
 git checkout /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 chmod -R 777 /opt/pod/rafa-docker/volumes/rafa-db/oradata/
 ```
