@@ -135,10 +135,15 @@ Restaurez ensuite la base de données depuis un dump :
 ```bash
 cd /opt/pod/rafa-docker/
 
-# récupération du dump depuis le serveur de sauvegardes
+# récupération du dump depuis le serveur de sauvegardes (adaptez la date)
 rsync -ravL \
   devel@sotora:/backup_pool/diplotaxis3-prod/daily.0/racine/opt/pod/rafa-docker/volumes/rafa-db/backup/rafa-db-2025-01-23.dmp \
   /opt/pod/rafa-docker/volumes/rafa-db/backup/
+
+# vider physiquement la base de données
+# (cf section juste après)
+# sans cette opération, vous rencontrerez des erreurs de ce type :
+# ORA-31684: Object type SEQUENCE:"RAFA"."SEQ_RESEAU" already exist
 
 # s'assurer que les conteneurs rafa-db et rafa-db-dumper sont démarrés
 docker compose up rafa-db rafa-db-dumper -d
