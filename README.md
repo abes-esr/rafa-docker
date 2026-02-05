@@ -228,6 +228,20 @@ sed -i "s#^RAFA_VERSION=.*\$#RAFA_VERSION=$RAFA_LAST_VERSION#g" /opt/pod/rafa-do
 docker compose up --build -d
 ```
 
+### Accéder à la base de données de Rafa
+
+Pour cela vous avez besoin de "SQL Developer" qui possède un client Oracle (d'autres clients Oracle sont probablement compatibles).
+
+Il faut ensuite ajouter une connexion avec les paramètres suivants : 
+- Nom d'utilisateur : RAFA
+- Mot de passe : voir le .env
+- Nom d'hôte : diplotaxis3-dev.v212.abes.fr (adapter en fonction de l'instance que vous souhaitez administrer)
+- Port : 15183
+- SID : FREE
+
+Exemple : 
+<img width="741" height="486" alt="image" src="https://github.com/user-attachments/assets/3e12ecc4-964b-43c6-9131-7296d7e0ea2d" />
+
 ### Copier les données d'une instance de Rafa vers une autre
 
 Pour cela on peut utiliser l'outil SQL developer et utiliser sa fonctionnalité `Copie de base de données` : 
